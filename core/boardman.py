@@ -1,25 +1,30 @@
+# PackMan (https://github.com/derco0n/PackMan):
+
+# Boardmanager - Handles a PiFaceDigital-Board
+
 import pifacedigitalio
-import threading
-# import pifacedigital_emulator
 
 
 class Boardmanager:
 
-
     def buttonpressed(self, event):
         # Callback-method for button ... pressed
-        event.chip.leds[event.pin_num].toggle()
+        event.chip.leds[event.pin_num].toggle()  # DEBUG
         # print(event)  # DEBUG
+        # TODO: Do something useful instead of setting an Output to HIGH. e.g. raise an own event to write the state change to database...
+
 
     def switchon(self, event):
         # Callback-method for switch ... turned on
-        event.chip.leds[event.pin_num].turn_on()
+        event.chip.leds[event.pin_num].turn_on()  # DEBUG
         # print(event)  # DEBUG
+        # TODO: Do something useful instead of setting an Output to HIGH. e.g. raise an own event to write the state change to database...
 
     def switchoff(self, event):
         # Callback-method for switch ... turned on
-        event.chip.leds[event.pin_num].turn_off()
+        event.chip.leds[event.pin_num].turn_off()  # DEBUG
         # print(event)  # DEBUG
+        # TODO: Do something useful instead of setting an Output to HIGH. e.g. raise an own event to write the state change to database...
 
     def __init__(self, bid, inputmode="switch", inputcount=8):
         self.boardid = bid  # Defines the SPI-Bus Number of the PiFace-Board
@@ -61,3 +66,4 @@ class Boardmanager:
 
     def deactivateListener(self):
         self.eventlistener.deactivate()
+
