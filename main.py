@@ -52,7 +52,10 @@ def start():
     # TODO: Do some useful stuff. Bringing it all together...
 
     # Test Database
-    mydb.read_input_state(2)
+    mydb.write_input_state(2, 0)  # Set Pin 2 to LOW
+    print(str(mydb.read_input_state(2)))
+    mydb.write_input_state(2, 1)  # Set Pin 2 to HIGH
+    print(str(mydb.read_input_state(2)))
 
     print("Ready...")
 
