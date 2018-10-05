@@ -13,20 +13,29 @@ class Boardmanager:
         # print(event)  # DEBUG
         # TODO: Do something useful instead of setting an Output to HIGH. e.g. raise an own event to write the state change to database...
 
-
     def switchon(self, event):
         # Callback-method for switch ... turned on
-        event.chip.leds[event.pin_num].turn_on()  # DEBUG
+        # event.chip.leds[event.pin_num].turn_on()  # DEBUG
         # print(event)  # DEBUG
-        # TODO: Do something useful instead of setting an Output to HIGH. e.g. raise an own event to write the state change to database...
+        # Do something useful instead of just setting an Output to HIGH.
+        # e.g. raise an own event to write the state change to database...
+        self.mydb.write_log(1, "Board: " + str(self.boardid) + ", Pin: " + str(event.pin_num))
+        self.mydb.write_input_state(event.pin_num,
+                                    1)  # TODO: This has to be done in MAIN not here. As there we can determine linea PIN-Number over all Boards
 
     def switchoff(self, event):
         # Callback-method for switch ... turned on
-        event.chip.leds[event.pin_num].turn_off()  # DEBUG
+        # event.chip.leds[event.pin_num].turn_off()  # DEBUG
         # print(event)  # DEBUG
-        # TODO: Do something useful instead of setting an Output to HIGH. e.g. raise an own event to write the state change to database...
+        # Do something useful instead of just setting an Output to HIGH.
+        # e.g. raise an own event to write the state change to database...
+        self.mydb.write_log(2, "Board: " + str(self.boardid) + ", Pin: " + str(event.pin_num))
+        self.mydb.write_input_state(event.pin_num,
+                                    0)  # TODO: This has to be done in MAIN not here. As there we can determine linea PIN-Number over all Boards
 
-    def __init__(self, bid, inputmode="switch", inputcount=8):
+    def __init__(self, bid, dbconn, inputmode="switch", inputcount=8):
+        self.mydb = dbconn  # Use the given Databaseobject
+
         self.boardid = bid  # Defines the SPI-Bus Number of the PiFace-Board
         # Determine if Input is a button or a switch (default)
         if inputmode == "switch" or inputmode == "button":

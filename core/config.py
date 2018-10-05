@@ -44,6 +44,8 @@ class Config:
 
         config = configparser.ConfigParser()
         config.read(self.configfile)
+        self.hasallsqlvalues=True
+        self.hasallboardvalues = True
 
         # Section mysql
         if 'mysql' in config:
@@ -52,26 +54,37 @@ class Config:
                 self.mysql.server = config.get('mysql', 'server')
             except:
                 print("Did not found value for server in "+self.configfile)
+                self.hasallsqlvalues = False
 
             try:
                 self.mysql.user = config.get('mysql', 'user')
             except:
                 print("Did not found value for user in "+self.configfile)
+                self.hasallsqlvalues = False
 
             try:
                 self.mysql.password = config.get('mysql', 'pass')
             except:
                 print("Did not found value for pass in " + self.configfile)
+                self.hasallsqlvalues = False
 
             try:
                 self.mysql.db = config.get('mysql', 'database')
             except:
                 print("Did not found value for database in " + self.configfile)
+                self.hasallsqlvalues = False
 
             try:
                 self.mysql.inputstable = config.get('mysql', 'inputstable')
             except:
                 print("Did not found value for inputstable in " + self.configfile)
+                self.hasallsqlvalues = False
+
+            try:
+                self.mysql.logstable = config.get('mysql', 'logstable')
+            except:
+                print("Did not found value for logstable in " + self.configfile)
+                self.hasallsqlvalues = False
 
         # Section pifaceboards
         if 'pifaceboards' in config:
@@ -80,14 +93,17 @@ class Config:
                 self.pifaceboards.boardcount = config.getint('pifaceboards', 'boardcount')
             except:
                 print("Did not found value for boardcount in " + self.configfile)
+                self.hasallboardvalues = False
 
             try:
                 self.pifaceboards.inputsperboard = config.getint('pifaceboards', 'inputsperboard')
             except:
                 print("Did not found value for inputsperboard in " + self.configfile)
+                self.hasallboardvalues = False
 
             try:
                 self.pifaceboards.inputmode = config.get('pifaceboards', 'inputmode')
             except:
                 print("Did not found value for inputmode in " + self.configfile)
+                self.hasallboardvalues = False
 

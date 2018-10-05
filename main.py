@@ -7,13 +7,28 @@ import core.boardman
 import core.config
 import core.database_mysql
 
+VERSION="0.1"
+DEFAULTCONFIG="/etc/packman/packman.conf"
 
 def start():
     """ Main entry point """
+
+    configfile = DEFAULTCONFIG
+
+
     print("Welcome to PackMan. You are running Python-version: "+sys.version)
 
     # Get current config
-    myconf = core.config.Config("/etc/packman/packman.conf")
+    myconf = core.config.Config(configfile)
+
+    if myconf.hasallboardvalues == False:
+        print("Not all board-value-definitions found. Please check your config-file. Aborting")
+        return 1
+
+    if myconf.hasallsqlvalues == False:
+        print("Not all Database-value-definitions found. Please check your config-file. Aborting")
+        return 2
+
 
     # Print current config
     myconf.printconfig()
@@ -29,33 +44,33 @@ def start():
     # bman=core.boardman.Boardmanager(1, "switch", 6)
     # etc. ...
 
-    # Initialize one Boardmanager per Board...
-    count=0
-    boardmanagers=[]
-    while count < myconf.pifaceboards.boardcount:
-        boardmanagers.append(core.boardman.Boardmanager(count,
-                                                        myconf.pifaceboards.inputmode,
-                                                        myconf.pifaceboards.inputsperboard)
-                             )
-        count = count+1
-    print("Boardmanager(s) initialized...")
-
     # Establish-Database-connection
     mydb = core.database_mysql.db_mysql(
         myconf.mysql.server,
         myconf.mysql.user,
         myconf.mysql.password,
         myconf.mysql.db,
-        myconf.mysql.inputstable
+        myconf.mysql.inputstable,
+        myconf.mysql.logstable
     )
 
-    # TODO: Do some useful stuff. Bringing it all together...
+    mydb.write_log(5, "Version: " + VERSION + ", Config: " + configfile)  # Write Log-Entry: Sensor started
 
-    # Test Database
-    mydb.write_input_state(2, 0)  # Set Pin 2 to LOW
-    print(str(mydb.read_input_state(2)))
-    mydb.write_input_state(2, 1)  # Set Pin 2 to HIGH
-    print(str(mydb.read_input_state(2)))
+    # Initialize one Boardmanager per Board...
+    boardcount = 0
+    boardmanagers = []
+    while boardcount < myconf.pifaceboards.boardcount:
+        boardmanagers.append(core.boardman.Boardmanager(boardcount,
+                                                        mydb,
+                                                        myconf.pifaceboards.inputmode,
+                                                        myconf.pifaceboards.inputsperboard)
+                             )
+
+        boardcount = boardcount + 1
+    print("Boardmanager(s) initialized...")
+
+    # TODO: Fetch Events raised from ech boardman here, so wen can calculate linear-pin-number and talk to database in main
+
 
     print("Ready...")
 

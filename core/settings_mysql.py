@@ -9,3 +9,4 @@ class settings_mysql:
         self.password = ""
         self.db = ""
         self.inputstable = ""
+        self.logstable = ""
