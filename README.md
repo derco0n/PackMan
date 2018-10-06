@@ -11,3 +11,15 @@ Gedanke:
 -Am entsprechenden Fach ist ein entsprechender Sensor/Schalter angebracht welcher ausgelöst/betätigt wird
 -Durch die Sensorauslösung wird eine entsprechende Benachrichtigung (z.B.: per E-Mail) für Abteilung x generiert
 -Sobald die Ware aus dem Fach entnommen wird, wird durch erneute Schalterbetätigung/Sensorauslösung das Fach zurückgesetzt.
+
+#### Requirements:
+- Python 3.x
+- Python-Modules:
+  - wheel
+  - egg
+  - events
+  - threading
+  - mysql-connector
+- MySQL/Maria-DB
+
+
