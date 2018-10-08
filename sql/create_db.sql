@@ -37,7 +37,7 @@ CREATE TABLE `pM_DigitalInputs` (
   `description` tinytext NOT NULL DEFAULT '0',
   PRIMARY KEY (`s_id`),
   UNIQUE KEY `inputID` (`inputID`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COMMENT='Statustabelle';
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8 COMMENT='Statustabelle';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -46,7 +46,7 @@ CREATE TABLE `pM_DigitalInputs` (
 
 LOCK TABLES `pM_DigitalInputs` WRITE;
 /*!40000 ALTER TABLE `pM_DigitalInputs` DISABLE KEYS */;
-INSERT INTO `pM_DigitalInputs` VALUES (1,0,'\0','\0'),(2,1,'\0','0'),(3,2,'\0','0'),(4,3,'\0','0'),(5,4,'\0','0'),(6,5,'\0','0'),(7,6,'\0','0'),(8,7,'\0','0');
+INSERT INTO `pM_DigitalInputs` VALUES (1,0,'\0','Board 0, Pin 1'),(2,1,'\0','Board 0, Pin 2'),(3,2,'\0','Board 0, Pin 3'),(4,3,'\0','Board 0, Pin 4'),(5,4,'\0','Board 0, Pin 5'),(6,5,'\0','Board 0, Pin 6'),(7,6,'\0','Board 0, Pin 7'),(8,7,'\0','Board 0, Pin 8');
 /*!40000 ALTER TABLE `pM_DigitalInputs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -62,7 +62,7 @@ CREATE TABLE `pM_Events` (
   `eventtext` tinytext NOT NULL,
   `description` varchar(255) DEFAULT NULL,
   KEY `ev_id` (`ev_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -71,7 +71,7 @@ CREATE TABLE `pM_Events` (
 
 LOCK TABLES `pM_Events` WRITE;
 /*!40000 ALTER TABLE `pM_Events` DISABLE KEYS */;
-INSERT INTO `pM_Events` VALUES (1,'Input switched to HIGH','A Digital-Input switched to HIGH signals an inbound Package'),(2,'Input switched to LOW','A Digital-Input switched to LOW signals a Package fetched by someone'),(3,'E-Mail -Package inbound- sent','An E-Mail notifying an inbound Package has been sent'),(4,'E-Mail -Package fetched - sent','An E-Mail notifying an fetched Package has been sent'),(5,'packMan-Sensor started','The sensor-software on the Raspberry-Pi has been started'),(6,'Frontend accessed','The Webfrontend was accessed. Log-Extra-info may contain the IP-Adress');
+INSERT INTO `pM_Events` VALUES (1,'Input switched to HIGH','A Digital-Input switched to HIGH signals an inbound Package'),(2,'Input switched to LOW','A Digital-Input switched to LOW signals a Package fetched by someone'),(4,'E-Mail -Package inbound- sent','An E-Mail notifying an inbound Package has been sent'),(5,'E-Mail -Package fetched - sent','An E-Mail notifying an fetched Package has been sent'),(6,'packMan-Sensor started','The sensor-software on the Raspberry-Pi has been started'),(7,'Frontend accessed','The Webfrontend was accessed. Log-Extra-info may contain the IP-Adress'),(3,'Input toggled','A Digital-Input had been triggered in button-mode');
 /*!40000 ALTER TABLE `pM_Events` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -165,4 +165,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-10-05  6:37:26
+-- Dump completed on 2018-10-08 13:16:35
