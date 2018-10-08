@@ -43,7 +43,7 @@ class Start:
             self.mydb.connection.disconnect()
 
         print("Bye")
-        return 0
+        exit(0)
 
 
     def handle_pintoggle(self, boardid, linearinput):  # Eventhandler (for Boardman-Event...)
