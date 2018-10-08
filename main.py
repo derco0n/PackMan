@@ -6,14 +6,45 @@ import sys
 import core.boardman
 import core.config
 import core.database_mysql
+import threading
+import core.gracefulkiller
 
-VERSION = "0.11"
+VERSION = "0.12"
 DEFAULTCONFIG = "/etc/packman/packman.conf"
 
-class start:
+
+class Start:
     def __init__(self, configfile=DEFAULTCONFIG):
+        self.killer = core.gracefulkiller.GracefulKiller()  # Watches for Sigkill
+        self.killer.events.on_kill_now += self.handle_killsignal  # Handles Sigkill
         self.configfile = configfile
         self.start()
+        self.killer.debug()
+
+    def handle_killsignal(self):
+        # Kill-signal received
+
+        # Stop Event-Listeners
+        print("Stopping Input-Event-Listeners...")
+        for bm in self.boardmanagers:
+            # deregister Events
+            print("Board: "+str(bm.boardid) )
+            bm.events.on_pinup -= self.handle_pinon
+            bm.events.on_pindown -= self.handle_pinoff
+            bm.events.on_pintoggle -= self.handle_pintoggle
+
+            # Stop Listener-Thread
+            bm.stop()
+            print("Board: " + str(bm.boardid) + " done.")
+
+        # Close Database connection
+        print("Closing DB-connection...")
+        if self.mydb.connection.is_connected():
+            self.mydb.connection.disconnect()
+
+        print("Bye")
+        return 0
+
 
     def handle_pintoggle(self, boardid, linearinput):  # Eventhandler (for Boardman-Event...)
         self.mydb.write_log(3, "Board: " + str(boardid) + ", Pin: " + str(linearinput))
@@ -36,6 +67,26 @@ class start:
         self.mydb.write_input_state(linearinput, 0)
         # print(event) # DEBUG
 
+    def initialize_inputstates(self):
+        # Gets current Input-States and sets them in Database
+        # This should be triggered at startup and eventually in intervalls (to make sure you dont miss a state change)
+
+        # (Re-)trigger this Method every 5 Minutes (300 seconds) with a timer Event
+        threading.Timer(300.0, self.initialize_inputstates).start()  # comment this out if you dont want to pull inputs in intervalls
+
+        # Get current Input-States
+        allinputstates = {}
+        for bm in self.boardmanagers:
+            inputs = bm.get_all_input_states()
+            # Add the new Key-value-pairs into allinputstates
+            allinputstates = dict(allinputstates)
+            allinputstates.update(inputs)
+
+        # Initialise DB with current input-states (initial states at startup-time)
+        for k in allinputstates.keys():
+            val = allinputstates[k]
+            self.mydb.write_input_state(k, val)
+
     def start(self):
         """ Main entry point """
 
@@ -44,14 +95,13 @@ class start:
         # Get current config
         self.myconf = core.config.Config(self.configfile)
 
-        if self.myconf.hasallboardvalues == False:
+        if not self.myconf.hasallboardvalues:
             print("Not all board-value-definitions found. Please check your config-file. Aborting")
             return 1
 
-        if self.myconf.hasallsqlvalues == False:
+        if not self.myconf.hasallsqlvalues:
             print("Not all Database-value-definitions found. Please check your config-file. Aborting")
             return 2
-
 
         # Print current config
         self.myconf.printconfig()
@@ -77,7 +127,7 @@ class start:
             self.myconf.mysql.logstable
         )
 
-        self.mydb.write_log(5, "Version: " + VERSION + ", Config: " + self.configfile)  # Write Log-Entry: Sensor started
+        self.mydb.write_log(6, "Version: " + VERSION + ", Config: " + self.configfile)  # Write Log-Entry: Sensor started
 
         # Initialize one Boardmanager per Board...
         boardcount = 0
@@ -91,19 +141,9 @@ class start:
             boardcount = boardcount + 1
         print("Boardmanager(s) initialized...")
 
+        self.initialize_inputstates()  # Initalize Input-states at startup
 
-        # Get current Input-States
-        allinputstates = {}
-        for bm in self.boardmanagers:
-            inputs = bm.get_all_input_states()
-            # Add the new Key-value-pairs into allinputstates
-            allinputstates = dict(allinputstates)
-            allinputstates.update(inputs)
 
-        # Initialise DB with current input-states (initial states at startup-time)
-        for k in allinputstates.keys():
-            val = allinputstates[k]
-            self.mydb.write_input_state(k, val)
 
         # Initialize Input-Event-listeners (to recognize Input-changes by Interrupt)
         for bm in self.boardmanagers:
@@ -115,7 +155,8 @@ class start:
             # Start Listener-Thread
             bm.run()
 
-    print("Ready...")
+
+        print("Ready...")
 
 
 

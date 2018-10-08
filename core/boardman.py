@@ -85,7 +85,11 @@ class Boardmanager(threading.Thread):
         self.eventlistener.activate()
 
     def deactivateListener(self):
-        self.eventlistener.deactivate()
+        try:
+            self.eventlistener.deactivate()
+        except:
+            print("Eventlistener aleready inactive.")
+
 
     def linear_input_number(self, inputnumber):
         # returns a linear number over all Inputs

@@ -3,7 +3,7 @@
 # connected to a RaspberryPi and writes its values to a database
 
 
-from main import start
+from main import Start
 
-start()
+Start()
 
