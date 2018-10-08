@@ -1,5 +1,5 @@
 # PackMan (https://github.com/derco0n/PackMan):
-# Database-Connector mysql
+# Database-Connector for MySQL/MariaDB
 
 import mysql.connector
 
@@ -75,6 +75,15 @@ class db_mysql:
                 return True
             return False
         else:
+            # Input not found in Database
+            # Check if new state is 1 or 0 and nothing else
+            # And add Input if not exist...
+            if state == 1 or state == 0:
+                statement = "INSERT INTO " + self.statestable + " (inputID, state, description) VALUES (" + \
+                            str(inputID) + ", " + str(state) + \
+                            ", \"Added automatically by PackMan-Sensor\")"
+                res = self.execute_statement(statement)
+                return True
             return False
 
     def write_log(self, eventID, extra=""):
@@ -83,14 +92,15 @@ class db_mysql:
         # +-------+--------------------------------+------------------------------------------------------------------------+
         # | ev_id | eventtext                      | description                                                            |
         # +-------+--------------------------------+------------------------------------------------------------------------+
-        # |     1 | Input switched to HIGH         | A Digital-Input switched to HIGH signals an inbound Package           |
-        # |     2 | Input switched to LOW          | A Digital-Input switched to LOW signals a Package fetched by someone  |
-        # |     3 | E-Mail -Package inbound- sent  | An E-Mail notifying an inbound Package has been sent                   |
-        # |     4 | E-Mail -Package fetched - sent | An E-Mail notifying an fetched Package has been sent                   |
-        # |     5 | packMan-Sensor started         | The sensor-software on the Raspberry-Pi has been started               |
-        # |     6 | Frontend accessed              | The Webfrontend was accessed. Log-Extra-info may contain the IP-Adress |
+        # |     1 | Input switched to HIGH         | A Digital-Input switched to HIGH signals an inbound Package            |
+        # |     2 | Input switched to LOW          | A Digital-Input switched to LOW signals a Package fetched by someone   |
+        # |     3 | Input toggled                  | A Digital-Input had been triggered in button-mode                      |
+        # |     4 | E-Mail -Package inbound- sent  | An E-Mail notifying an inbound Package has been sent                   |
+        # |     5 | E-Mail -Package fetched - sent | An E-Mail notifying an fetched Package has been sent                   |
+        # |     6 | packMan-Sensor started         | The sensor-software on the Raspberry-Pi has been started               |
+        # |     7 | Frontend accessed              | The Webfrontend was accessed. Log-Extra-info may contain the IP-Adress |
         # +-------+--------------------------------+------------------------------------------------------------------------+
-        if eventID >= 1 and eventID <= 5:
+        if eventID >= 1 and eventID <= 6:
             if extra == "":
                 statement = "INSERT INTO " + self.logstable + "(ev_id) VALUES ("+str(eventID) + ")"
             else:
