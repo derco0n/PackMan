@@ -63,9 +63,17 @@ class Boardmanager(threading.Thread):
                     self.eventlistener.register(input, pifacedigitalio.IODIR_ON, self.switchon)  # Listen for Inputevents for Switch Enable at >>input<<
                     self.eventlistener.register(input, pifacedigitalio.IODIR_OFF, self.switchoff)  # Listen for Inputevents for Switch Disable at >>input<<
             except:
-                print("Listener for input #"+input+" could not be registered!")
+                print("Listener for input #" + input + " could not be registered!")
             input = input + 1  # got to next input
 
+    def get_all_input_states(self):
+        # return an array with all current input states
+        inputcounter = 0
+        inputstates = {}
+        while inputcounter <= self.maxinput:
+            inputstates[self.linear_input_number(inputcounter)] = self.pfd.input_pins[inputcounter].value
+            inputcounter = inputcounter + 1
+        return inputstates
 
     def run(self):
         self.activateListener()  # Enable Listener
