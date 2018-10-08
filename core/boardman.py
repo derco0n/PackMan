@@ -1,40 +1,38 @@
 # PackMan (https://github.com/derco0n/PackMan):
 
-# Boardmanager - Handles a PiFaceDigital-Board
+# Boardmanager - Handles a PiFaceDigital-Board in a separate thread
 
 import pifacedigitalio
+import threading
+from events import Events
 
 
-class Boardmanager:
+class Boardmanager(threading.Thread):
 
     def buttonpressed(self, event):
         # Callback-method for button ... pressed
-        event.chip.leds[event.pin_num].toggle()  # DEBUG
-        # print(event)  # DEBUG
-        # TODO: Do something useful instead of setting an Output to HIGH. e.g. raise an own event to write the state change to database...
+        # event.chip.leds[event.pin_num].toggle()  # DEBUG
+        linearinput = self.linear_input_number(event.pin_num)  # calculate linear input number
+        self.events.on_pintoggle(self.boardid, linearinput)  # Raise Event
 
     def switchon(self, event):
         # Callback-method for switch ... turned on
         # event.chip.leds[event.pin_num].turn_on()  # DEBUG
         # print(event)  # DEBUG
-        # Do something useful instead of just setting an Output to HIGH.
-        # e.g. raise an own event to write the state change to database...
-        self.mydb.write_log(1, "Board: " + str(self.boardid) + ", Pin: " + str(event.pin_num))
-        self.mydb.write_input_state(event.pin_num,
-                                    1)  # TODO: This has to be done in MAIN not here. As there we can determine linea PIN-Number over all Boards
+        linearinput = self.linear_input_number(event.pin_num)  # calculate linear input number
+        self.events.on_pinup(self.boardid, linearinput)  # Raise Event
 
     def switchoff(self, event):
         # Callback-method for switch ... turned on
         # event.chip.leds[event.pin_num].turn_off()  # DEBUG
         # print(event)  # DEBUG
-        # Do something useful instead of just setting an Output to HIGH.
-        # e.g. raise an own event to write the state change to database...
-        self.mydb.write_log(2, "Board: " + str(self.boardid) + ", Pin: " + str(event.pin_num))
-        self.mydb.write_input_state(event.pin_num,
-                                    0)  # TODO: This has to be done in MAIN not here. As there we can determine linea PIN-Number over all Boards
+        linearinput = self.linear_input_number(event.pin_num)  # calculate linear input number
+        self.events.on_pindown(self.boardid, linearinput)  # Raise Event
 
-    def __init__(self, bid, dbconn, inputmode="switch", inputcount=8):
-        self.mydb = dbconn  # Use the given Databaseobject
+    def __init__(self, bid, inputmode="switch", inputcount=8):
+        threading.Thread.__init__(self)  # Call Base-class-constructor
+
+        self.events = Events(('on_pinup', 'on_pindown', 'on_pintoggle'))  # declare Events (for handling in Main [or elsewhere])
 
         self.boardid = bid  # Defines the SPI-Bus Number of the PiFace-Board
         # Determine if Input is a button or a switch (default)
@@ -68,11 +66,28 @@ class Boardmanager:
                 print("Listener for input #"+input+" could not be registered!")
             input = input + 1  # got to next input
 
+
+    def run(self):
         self.activateListener()  # Enable Listener
+
+    def stop(self):
+        self.deactivateListener()  # Disable Listener
 
     def activateListener(self):
         self.eventlistener.activate()
 
     def deactivateListener(self):
         self.eventlistener.deactivate()
+
+    def linear_input_number(self, inputnumber):
+        # returns a linear number over all Inputs
+        # Board 0, Input 0 = 0
+        # Board 1, Input 0 = 8
+        # Board 2, Input 2 = 18 ...
+        if inputnumber > self.maxinput:
+            # Impossible. inputnumber must be smaller than inputsperboard
+            return inputnumber  # TODO: Verify this has no negative side effects
+        else:
+            linearnumber = self.boardid * self.maxinput + inputnumber  # TODO: Verify this calculation is correct
+            return linearnumber
 

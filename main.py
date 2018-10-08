@@ -10,69 +10,97 @@ import core.database_mysql
 VERSION="0.1"
 DEFAULTCONFIG="/etc/packman/packman.conf"
 
-def start():
-    """ Main entry point """
+class start:
+    def __init__(self, configfile=DEFAULTCONFIG):
+        self.configfile = configfile
+        self.start()
 
-    configfile = DEFAULTCONFIG
+    def handle_pintoggle(self, boardid, linearinput):  # Eventhandler (for Boardman-Event...)
+        self.mydb.write_log(1, "Board: " + str(boardid) + ", Pin: " + str(linearinput))
+        currentstate = self.mydb.read_input_state(linearinput)  # get current state in db
 
+        # Invert current db-state, as pin had been toggled...
+        if currentstate == 0:
+            self.mydb.write_input_state(linearinput, 1)
+        else:
+            self.mydb.write_input_state(linearinput, 0)
+        # print(event) # DEBUG
 
-    print("Welcome to PackMan. You are running Python-version: "+sys.version)
+    def handle_pinon(self, boardid, linearinput):  # Eventhandler (for Boardman-Event...)
+        self.mydb.write_log(1, "Board: " + str(boardid) + ", Pin: " + str(linearinput))
+        self.mydb.write_input_state(linearinput, 1)
+        # print(event) # DEBUG
 
-    # Get current config
-    myconf = core.config.Config(configfile)
+    def handle_pinoff(self, boardid, linearinput):  # Eventhandler (for Boardman-Event...)
+        self.mydb.write_log(1, "Board: " + str(boardid) + ", Pin: " + str(linearinput))
+        self.mydb.write_input_state(linearinput, 0)
+        # print(event) # DEBUG
 
-    if myconf.hasallboardvalues == False:
-        print("Not all board-value-definitions found. Please check your config-file. Aborting")
-        return 1
+    def start(self):
+        """ Main entry point """
 
-    if myconf.hasallsqlvalues == False:
-        print("Not all Database-value-definitions found. Please check your config-file. Aborting")
-        return 2
+        print("Welcome to PackMan. You are running Python-version: "+sys.version)
 
+        # Get current config
+        self.myconf = core.config.Config(self.configfile)
 
-    # Print current config
-    myconf.printconfig()
+        if self.myconf.hasallboardvalues == False:
+            print("Not all board-value-definitions found. Please check your config-file. Aborting")
+            return 1
 
-    # Board-Manager-Examples:
-    # Initialize Board ID 0 (iterate for Piface-Stack [Check Jumpers JP1 and JP2]) in Inputmode=Button with 8 Inputs
-    # bman = core.boardman.Boardmanager(0, "button", 8)
-
-    # Initialize Board ID 0 (iterate for Piface-Stack [Check Jumpers JP1 and JP2]) in Inputmode=Switch with 8 Inputs
-    # bman=core.boardman.Boardmanager(0, "switch", 8)
-
-    # Initialize Board ID 1 (iterate for Piface-Stack [Check Jumpers JP1 and JP2]) in Inputmode=Switch with 6 Inputs
-    # bman=core.boardman.Boardmanager(1, "switch", 6)
-    # etc. ...
-
-    # Establish-Database-connection
-    mydb = core.database_mysql.db_mysql(
-        myconf.mysql.server,
-        myconf.mysql.user,
-        myconf.mysql.password,
-        myconf.mysql.db,
-        myconf.mysql.inputstable,
-        myconf.mysql.logstable
-    )
-
-    mydb.write_log(5, "Version: " + VERSION + ", Config: " + configfile)  # Write Log-Entry: Sensor started
-
-    # Initialize one Boardmanager per Board...
-    boardcount = 0
-    boardmanagers = []
-    while boardcount < myconf.pifaceboards.boardcount:
-        boardmanagers.append(core.boardman.Boardmanager(boardcount,
-                                                        mydb,
-                                                        myconf.pifaceboards.inputmode,
-                                                        myconf.pifaceboards.inputsperboard)
-                             )
-
-        boardcount = boardcount + 1
-    print("Boardmanager(s) initialized...")
-
-    # TODO: Fetch Events raised from ech boardman here, so wen can calculate linear-pin-number and talk to database in main
+        if self.myconf.hasallsqlvalues == False:
+            print("Not all Database-value-definitions found. Please check your config-file. Aborting")
+            return 2
 
 
-    print("Ready...")
+        # Print current config
+        self.myconf.printconfig()
+
+        # Board-Manager-Examples:
+        # Initialize Board ID 0 (iterate for Piface-Stack [Check Jumpers JP1 and JP2]) in Inputmode=Button with 8 Inputs
+        # bman = core.boardman.Boardmanager(0, "button", 8)
+
+        # Initialize Board ID 0 (iterate for Piface-Stack [Check Jumpers JP1 and JP2]) in Inputmode=Switch with 8 Inputs
+        # bman=core.boardman.Boardmanager(0, "switch", 8)
+
+        # Initialize Board ID 1 (iterate for Piface-Stack [Check Jumpers JP1 and JP2]) in Inputmode=Switch with 6 Inputs
+        # bman=core.boardman.Boardmanager(1, "switch", 6)
+        # etc. ...
+
+        # Establish-Database-connection
+        self.mydb = core.database_mysql.db_mysql(
+            self.myconf.mysql.server,
+            self.myconf.mysql.user,
+            self.myconf.mysql.password,
+            self.myconf.mysql.db,
+            self.myconf.mysql.inputstable,
+            self.myconf.mysql.logstable
+        )
+
+        self.mydb.write_log(5, "Version: " + VERSION + ", Config: " + self.configfile)  # Write Log-Entry: Sensor started
+
+        # Initialize one Boardmanager per Board...
+        boardcount = 0
+        self.boardmanagers = []
+        while boardcount < self.myconf.pifaceboards.boardcount:
+            self.boardmanagers.append(core.boardman.Boardmanager(boardcount,
+                                                                 self.myconf.pifaceboards.inputmode,
+                                                                 self.myconf.pifaceboards.inputsperboard)
+                                 )
+            #register Events
+            self.boardmanagers[boardcount].events.on_pinup += self.handle_pinon
+            self.boardmanagers[boardcount].events.on_pindown += self.handle_pinoff
+            self.boardmanagers[boardcount].events.on_pintoggle += self.handle_pintoggle
+
+            # Start Listener-Thread
+            self.boardmanagers[boardcount].run()
+
+            # Increment counter
+            boardcount = boardcount + 1
+        print("Boardmanager(s) initialized...")
+
+
+        print("Ready...")
 
 
 

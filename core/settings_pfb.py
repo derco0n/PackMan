@@ -10,15 +10,3 @@ class settings_pifaceboards:
 
     def all_input_count(self):
         return self.inputperboard * self.boardcount
-
-    def linear_input_number(self, boardnumber, inputnumber):
-        # returns a linear number over all Inputs
-        # Board 0, Input 0 = 0
-        # Board 1, Input 0 = 8
-        # Board 2, Input 2 = 18 ...
-        if inputnumber > self.inputsperboard:
-            # Impossible. inputnumber must be smaller than inputsperboard
-            return -1
-        else:
-            linearnumber = boardnumber * self.inputsperboard + inputnumber  # TODO: Verify this calculation is correct
-            return linearnumber
