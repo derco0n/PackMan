@@ -7,7 +7,7 @@ import core.boardman
 import core.config
 import core.database_mysql
 
-VERSION = "0.1"
+VERSION = "0.11"
 DEFAULTCONFIG = "/etc/packman/packman.conf"
 
 class start:
@@ -16,7 +16,7 @@ class start:
         self.start()
 
     def handle_pintoggle(self, boardid, linearinput):  # Eventhandler (for Boardman-Event...)
-        self.mydb.write_log(1, "Board: " + str(boardid) + ", Pin: " + str(linearinput))
+        self.mydb.write_log(3, "Board: " + str(boardid) + ", Pin: " + str(linearinput))
         currentstate = self.mydb.read_input_state(linearinput)  # get current state in db
 
         # Invert current db-state, as pin had been toggled...
@@ -32,7 +32,7 @@ class start:
         # print(event) # DEBUG
 
     def handle_pinoff(self, boardid, linearinput):  # Eventhandler (for Boardman-Event...)
-        self.mydb.write_log(1, "Board: " + str(boardid) + ", Pin: " + str(linearinput))
+        self.mydb.write_log(2, "Board: " + str(boardid) + ", Pin: " + str(linearinput))
         self.mydb.write_input_state(linearinput, 0)
         # print(event) # DEBUG
 
@@ -115,7 +115,7 @@ class start:
             # Start Listener-Thread
             bm.run()
 
-        print("Ready...")
+    print("Ready...")
 
 
 
