@@ -16,6 +16,3 @@ class GracefulKiller:
 
     def exit_gracefully(self, signum, frame):
         self.events.on_kill_now()
-
-    def debug(self):
-        self.events.on_kill_now()

@@ -19,7 +19,7 @@ class Start:
         self.killer.events.on_kill_now += self.handle_killsignal  # Handles Sigkill
         self.configfile = configfile
         self.start()
-        self.killer.debug()
+
 
     def handle_killsignal(self):
         # Kill-signal received
