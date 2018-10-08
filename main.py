@@ -7,8 +7,8 @@ import core.boardman
 import core.config
 import core.database_mysql
 
-VERSION="0.1"
-DEFAULTCONFIG="/etc/packman/packman.conf"
+VERSION = "0.1"
+DEFAULTCONFIG = "/etc/packman/packman.conf"
 
 class start:
     def __init__(self, configfile=DEFAULTCONFIG):
@@ -87,18 +87,33 @@ class start:
                                                                  self.myconf.pifaceboards.inputmode,
                                                                  self.myconf.pifaceboards.inputsperboard)
                                  )
-            #register Events
-            self.boardmanagers[boardcount].events.on_pinup += self.handle_pinon
-            self.boardmanagers[boardcount].events.on_pindown += self.handle_pinoff
-            self.boardmanagers[boardcount].events.on_pintoggle += self.handle_pintoggle
-
-            # Start Listener-Thread
-            self.boardmanagers[boardcount].run()
-
             # Increment counter
             boardcount = boardcount + 1
         print("Boardmanager(s) initialized...")
 
+
+        # Get current Input-States
+        allinputstates = {}
+        for bm in self.boardmanagers:
+            inputs = bm.get_all_input_states()
+            # Add the new Key-value-pairs into allinputstates
+            allinputstates = dict(allinputstates)
+            allinputstates.update(inputs)
+
+        # Initialise DB with current input-states (initial states at startup-time)
+        for k in allinputstates.keys():
+            val = allinputstates[k]
+            self.mydb.write_input_state(k, val)
+
+        # Initialize Input-Event-listeners (to recognize Input-changes by Interrupt)
+        for bm in self.boardmanagers:
+            # register Events
+            bm.events.on_pinup += self.handle_pinon
+            bm.events.on_pindown += self.handle_pinoff
+            bm.events.on_pintoggle += self.handle_pintoggle
+
+            # Start Listener-Thread
+            bm.run()
 
         print("Ready...")
 
