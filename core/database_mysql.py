@@ -16,8 +16,8 @@ class db_mysql:
 
     def establish_connection(self):
         self.connection = mysql.connector.connect(
-            host=self.hostname,
-            user=self.username,
+            host=self.host,
+            user=self.user,
             passwd=self.password,
             db=self.database,
             autocommit=self.acommit  # Autocommit statements when their transactions complete
