@@ -5,22 +5,37 @@ import mysql.connector
 
 class db_mysql:
     def __init__(self, hostname, username, password, database, statestable, logstable, acommit=True):
-        self.connection = mysql.connector.connect(
-            host=hostname,
-            user=username,
-            passwd=password,
-            db=database,
-            autocommit=acommit  # Autocommit statements when their transactions complete
-        )
+        self.host = hostname
+        self.user = username
+        self.password = password
+        self.database = database
         self.statestable = statestable
         self.logstable = logstable
+        self.acommit = acommit
+        self.establish_connection()  # Establish SQL-Connection
 
+    def establish_connection(self):
+        self.connection = mysql.connector.connect(
+            host=self.hostname,
+            user=self.username,
+            passwd=self.password,
+            db=self.database,
+            autocommit=self.acommit  # Autocommit statements when their transactions complete
+        )
+        self.statestable = self.statestable
+        self.logstable = self.logstable
         # self.connection.autocommit = True  # Autocommit statements when their transactions complete
-
         # print(self.connection)  # DEBUG
+
+    def assure_sql_connection(self):
+        # Checks if the connection is still alive and reconnects if not
+        if not self.connection.is_connected():
+            # Connection ist not established or lost in the meantime
+            self.establish_connection()
 
     def execute_statement(self, statement):
         # Executes an SQL-Statement
+        self.assure_sql_connection()
         mycursor = self.connection.cursor()
         mycursor.execute(statement)
         return mycursor
