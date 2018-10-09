@@ -30,7 +30,9 @@ class Boardmanager(threading.Thread):
         self.events.on_pindown(self.boardid, linearinput)  # Raise Event
 
     def __init__(self, bid, inputmode="switch", inputcount=8):
-        threading.Thread.__init__(self)  # Call Base-class-constructor
+        threading.Thread.__init__(self, name="Boardmanager: "+str(bid))  # Call Base-class-constructor
+
+        self.listenersactive = False
 
         self.events = Events(('on_pinup', 'on_pindown', 'on_pintoggle'))  # declare Events (for handling in Main [or elsewhere])
 
@@ -80,16 +82,35 @@ class Boardmanager(threading.Thread):
 
     def stop(self):
         self.deactivateListener()  # Disable Listener
+        self.pfd.disable_interrupts()
+        self.pfd.deinit_board()
+        del self.pfd
 
     def activateListener(self):
         self.eventlistener.activate()
+        self.listenersactive = True
 
     def deactivateListener(self):
-        try:
-            self.eventlistener.deactivate()
-        except:
-            print("Eventlistener aleready inactive.")
+        if self.listenersactive:
+            input = 0  # Current input number
+            while input <= self.maxinput:  # Iterate through all possible inputs
+                # Deregister all events
+                try:
+                    if self.inputmode == "button":
+                        # Button-mode
+                        self.eventlistener.deregister(input, pifacedigitalio.IODIR_FALLING_EDGE)  # Listen for Inputevents on button >>input<<
+                    else:
+                        # Switch-Mode
+                        self.eventlistener.deregister(input, pifacedigitalio.IODIR_ON)  # Listen for Inputevents for Switch Enable at >>input<<
+                        self.eventlistener.deregister(input, pifacedigitalio.IODIR_OFF)  # Listen for Inputevents for Switch Disable at >>input<<
+                except:
+                    print("Listener for input #" + input + " could not be deregistered!")
+                input = input + 1  # got to next input
 
+            # self.eventlistener.deactivate()
+
+
+            self.listenersactive = False
 
     def linear_input_number(self, inputnumber):
         # returns a linear number over all Inputs

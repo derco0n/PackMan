@@ -3,48 +3,57 @@
 # Main Module
 
 import sys
+import os
 import core.boardman
 import core.config
 import core.database_mysql
 import threading
-import core.gracefulkiller
+import signal
+import time
 
-VERSION = "0.12"
+VERSION = "0.13"
 DEFAULTCONFIG = "/etc/packman/packman.conf"
 
 
 class Start:
     def __init__(self, configfile=DEFAULTCONFIG):
-        self.killer = core.gracefulkiller.GracefulKiller()  # Watches for Sigkill
-        self.killer.events.on_kill_now += self.handle_killsignal  # Handles Sigkill
+        print("PackMan starting...")
+        self.shouldexit = False
+        signal.signal(signal.SIGINT, self.signal_handler)
+        signal.signal(signal.SIGTERM, self.signal_handler)
         self.configfile = configfile
+
         self.start()
 
+    def signal_handler(self, signum, frame):
+        # print('Aborting...')
+        self.shouldexit = True
 
-    def handle_killsignal(self):
-        # Kill-signal received
+    def shutdown(self):
+
+        if self.getalltimer is not None:
+            print("Stopping Timer")
+            # self.getalltimer.stop()
 
         # Stop Event-Listeners
         print("Stopping Input-Event-Listeners...")
         for bm in self.boardmanagers:
             # deregister Events
-            print("Board: "+str(bm.boardid) )
-            bm.events.on_pinup -= self.handle_pinon
-            bm.events.on_pindown -= self.handle_pinoff
-            bm.events.on_pintoggle -= self.handle_pintoggle
+            if bm.listenersactive:
+                bm.events.on_pinup -= self.handle_pinon
+                bm.events.on_pindown -= self.handle_pinoff
+                bm.events.on_pintoggle -= self.handle_pintoggle
 
-            # Stop Listener-Thread
-            bm.stop()
-            print("Board: " + str(bm.boardid) + " done.")
+                # Stop Listener-Thread
+                bm.stop()
+                print("Board: " + str(bm.boardid) + " done.")
 
         # Close Database connection
-        print("Closing DB-connection...")
         if self.mydb.connection.is_connected():
+            print("Closing DB-connection...")
             self.mydb.connection.disconnect()
-
         print("Bye")
-        exit(0)
-
+        os._exit(0)  # The hard way to exit a programm, as it does not cleanup something
 
     def handle_pintoggle(self, boardid, linearinput):  # Eventhandler (for Boardman-Event...)
         self.mydb.write_log(3, "Board: " + str(boardid) + ", Pin: " + str(linearinput))
@@ -72,7 +81,7 @@ class Start:
         # This should be triggered at startup and eventually in intervalls (to make sure you dont miss a state change)
 
         # (Re-)trigger this Method every 5 Minutes (300 seconds) with a timer Event
-        threading.Timer(300.0, self.initialize_inputstates).start()  # comment this out if you dont want to pull inputs in intervalls
+        self.getalltimer = threading.Timer(300.0, self.initialize_inputstates).start()  # comment this out if you dont want to pull inputs in intervalls
 
         # Get current Input-States
         allinputstates = {}
@@ -90,7 +99,7 @@ class Start:
     def start(self):
         """ Main entry point """
 
-        print("Welcome to PackMan. You are running Python-version: "+sys.version)
+        print("Welcome to PackMan (Version: " + VERSION + "). You are running Python-version: "+sys.version)
 
         # Get current config
         self.myconf = core.config.Config(self.configfile)
@@ -135,9 +144,9 @@ class Start:
         while boardcount < self.myconf.pifaceboards.boardcount:
             self.boardmanagers.append(core.boardman.Boardmanager(boardcount,
                                                                  self.myconf.pifaceboards.inputmode,
-                                                                 self.myconf.pifaceboards.inputsperboard)
-                                 )
+                                                                 self.myconf.pifaceboards.inputsperboard))
             # Increment counter
+
             boardcount = boardcount + 1
         print("Boardmanager(s) initialized...")
 
@@ -155,9 +164,12 @@ class Start:
             # Start Listener-Thread
             bm.run()
 
-
         print("Ready...")
 
+        while self.shouldexit == False:
+           time.sleep(1)
+
+        self.shutdown()
 
 
 
