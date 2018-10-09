@@ -33,7 +33,7 @@ class Start:
 
         if self.getalltimer is not None:
             print("Stopping Timer")
-            # self.getalltimer.stop()
+            self.getalltimer.stop()
 
         # Stop Event-Listeners
         print("Stopping Input-Event-Listeners...")

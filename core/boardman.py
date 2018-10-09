@@ -6,7 +6,6 @@ import pifacedigitalio
 import threading
 from events import Events
 
-
 class Boardmanager(threading.Thread):
 
     def buttonpressed(self, event):
