@@ -57,7 +57,7 @@ class db_mysql:
         # Checks if a given inputID exists in Database
         statement = "SELECT EXISTS(SELECT inputID FROM " + self.statestable + " WHERE InputID=" + str(inputID) + ")"
         res = self.getresult(self.execute_statement(statement))
-        exists=0
+        exists = 0
         for row in res:
             exists = int(row[0])  # Get the binary state-value from res and convert it to int
         return exists

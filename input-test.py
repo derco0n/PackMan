@@ -1,4 +1,5 @@
-# This is an example how to listen to input-events on a PiFace-Board...
+# This is an example how to listen to input-events on a PiFace-Board...watch -n 0.1 "dmesg | tail -n $((LINES-6))"
+
 # This file is just for testing purpose and not used in productive
 
 import pifacedigitalio
@@ -14,7 +15,8 @@ def button1pressed(event):
     print(event)
 
 
-pifacedigital = pifacedigitalio.PiFaceDigital(0)
+# pifacedigital = pifacedigitalio.PiFaceDigital(0)
+pifacedigital = pifacedigitalio.PiFaceDigital(1)
 listener = pifacedigitalio.InputEventListener(chip=pifacedigital)
 listener.register(0, pifacedigitalio.IODIR_RISING_EDGE, button0pressed)
 listener.register(1, pifacedigitalio.IODIR_RISING_EDGE, button1pressed)

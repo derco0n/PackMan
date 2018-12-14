@@ -113,13 +113,15 @@ class Boardmanager(threading.Thread):
 
     def linear_input_number(self, inputnumber):
         # returns a linear number over all Inputs
-        # Board 0, Input 0 = 0
-        # Board 1, Input 0 = 8
+        # Board 0, Input 0 = 0 => 1
+        # Board 1, Input 0 = 8 => 9
+        # Board 1, Input 7 = 15 => 16
         # Board 2, Input 2 = 18 ...
         if inputnumber > self.maxinput:
             # Impossible. inputnumber must be smaller than inputsperboard
             return inputnumber  # TODO: Verify this has no negative side effects
         else:
-            linearnumber = self.boardid * self.maxinput + inputnumber  # TODO: Verify this calculation is correct
+            # linearnumber = self.boardid * self.maxinput + inputnumber  # This results in duplicate false results: Board0,Input7=7 Board1,Input0=7
+            linearnumber = (self.boardid * (self.maxinput+1)) + inputnumber  # This calculations seems to be correct
             return linearnumber
 

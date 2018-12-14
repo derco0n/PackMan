@@ -11,7 +11,7 @@ import threading
 import signal
 import time
 
-VERSION = "0.13"
+VERSION = "0.14"
 DEFAULTCONFIG = "/etc/packman/packman.conf"
 
 
@@ -53,7 +53,7 @@ class Start:
             print("Closing DB-connection...")
             self.mydb.connection.disconnect()
         print("Bye")
-        os._exit(0)  # The hard way to exit a programm, as it does not cleanup something
+        os._exit(0)  # The hard way to exit a program, as it does not cleanup something
 
     def handle_pintoggle(self, boardid, linearinput):  # Eventhandler (for Boardman-Event...)
         self.mydb.write_log(3, "Board: " + str(boardid) + ", Pin: " + str(linearinput))
@@ -80,8 +80,8 @@ class Start:
         # Gets current Input-States and sets them in Database
         # This should be triggered at startup and eventually in intervalls (to make sure you dont miss a state change)
 
-        # (Re-)trigger this Method every 5 Minutes (300 seconds) with a timer Event
-        self.getalltimer = threading.Timer(300.0, self.initialize_inputstates).start()  # comment this out if you dont want to pull inputs in intervalls
+        # (Re-)trigger this Method every Minute (60 seconds) with a timer Event
+        self.getalltimer = threading.Timer(60.0, self.initialize_inputstates).start()  # comment this out if you dont want to pull inputs in intervalls
 
         # Get current Input-States
         allinputstates = {}
