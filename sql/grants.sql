@@ -1,6 +1,6 @@
 -- Sets the needed Permissions in MySQL/MariaDB.
 -- Replace "PACKMANSENSUSER" with your user account and "YOURPASS" with your password
--- The provide them in your packman.conf
+-- Then provide them in your packman.conf
 
 GRANT USAGE ON *.* TO 'PACKMANSENSUSER'@'%' IDENTIFIED BY PASSWORD Password('YOURPASS');
 GRANT INSERT, REFERENCES ON `packMan`.`pM_Logs` TO 'PACKMANSENSUSER'@'%';
